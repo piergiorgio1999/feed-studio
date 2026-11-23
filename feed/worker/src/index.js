@@ -1,5 +1,5 @@
 import html from "./index.html";
-import videos from "./videos.json";
+const getVideos = async (env) => { const o = await env.VIDEOS.get("index/videos.json"); return o ? o.json() : []; };
 const ok = (req, env) => {
   const u = new URL(req.url), c = /(?:^|; )k=([^;]+)/.exec(req.headers.get("Cookie") || "");
   return (u.searchParams.get("k") || c?.[1]) === env.ACCESS_TOKEN;
@@ -10,7 +10,7 @@ export default {
     if (!env.ACCESS_TOKEN || !ok(req, env)) return new Response("Accesso negato", { status: 401 });
     const h = { "Set-Cookie": `k=${env.ACCESS_TOKEN}; Path=/; Max-Age=31536000; Secure; HttpOnly; SameSite=Strict` };
     if (u.pathname === "/") return new Response(html, { headers: { ...h, "Content-Type": "text/html; charset=utf-8" } });
-    if (u.pathname === "/api/videos") return Response.json(videos, { headers: h });
+    if (u.pathname === "/api/videos") return Response.json(await getVideos(env), { headers: h });
     if (u.pathname.startsWith("/api/") && u.pathname !== "/api/videos") {
       const db = env.DB, j = req.method === "POST" ? await req.json().catch(() => ({})) : {};
       if (u.pathname === "/api/social") {
@@ -32,9 +32,11 @@ export default {
         return Response.json(r.results);
       }
       if (u.pathname === "/api/comment" && req.method === "POST") {
-        const t = String(j.text || "").trim().slice(0, 2000);
-        if (!t) return new Response("vuoto", { status: 400 });
-        const r = await db.prepare("INSERT INTO comments(video_id,text,flagged,target) VALUES(?,?,?,?)").bind(+j.id, t, ["claude","codex"].includes(j.target) ? 1 : 0, ["claude","codex"].includes(j.target) ? j.target : null).run();
+        const txt = String(j.text || "").trim().slice(0, 2000);
+        if (!txt) return new Response("vuoto", { status: 400 });
+        const tg = j.target === "both" ? ["claude", "codex"] : ["claude", "codex"].includes(j.target) ? [j.target] : [null];
+        let r;
+        for (const t of tg) r = await db.prepare("INSERT INTO comments(video_id,text,flagged,target) VALUES(?,?,?,?)").bind(+j.id, txt, t ? 1 : 0, t).run();
         return Response.json({ id: r.meta.last_row_id });
       }
       if (u.pathname === "/api/comment/update" && req.method === "POST") {   // per Claude: status / reply

@@ -22,14 +22,19 @@ video{width:100%;height:100%;object-fit:contain;background:#000}
 .sheet .send{background:var(--acc);color:#111;margin-left:auto}
 </style>
 <div class=sheet id=sh><b id=sht></b><div class=list id=shl></div><textarea id=shx rows=2 placeholder="Scrivi un commento…"></textarea>
-<div class=row><select id=sht2><option value="">Nessun tag</option><option value=claude>@claude</option><option value=codex>@codex</option></select><button onclick="sh.classList.remove('on')">Chiudi</button><button class=send id=shs>Invia</button></div></div>
+<div class=row><select id=sht2><option value="">Nessun tag</option><option value=claude>@claude</option><option value=codex>@codex</option><option value=both>@claude + @codex</option></select><button onclick="sh.classList.remove('on')">Chiudi</button><button class=send id=shs>Invia</button></div></div>
 <header><button id=o></button><span id=f style=display:contents></span></header><main id=m></main>
 <script>
 const S=k=>{try{return JSON.parse(localStorage[k]||'null')}catch{return null}};
 let social={likes:new Set(),comments:{}};const api=(p,b)=>fetch(p,b?{method:'POST',body:JSON.stringify(b)}:{}).then(r=>r.json());
 let order=(S('order')||'logico'),all=[],saved=new Set(S('saved')||[]),exam='Tutti',speed=1;
+// Picture-in-Picture automatico quando esci dalla finestra/tab
+let playing=null;
+const enterPiP=()=>{if(playing&&!playing.paused&&document.pictureInPictureElement!==playing&&document.pictureInPictureEnabled)playing.requestPictureInPicture().catch(()=>{})};
+try{navigator.mediaSession.setActionHandler('enterpictureinpicture',enterPiP)}catch{}
+document.addEventListener('visibilitychange',()=>{if(document.hidden)enterPiP();else if(document.pictureInPictureElement)document.exitPictureInPicture().catch(()=>{})});
 const io=new IntersectionObserver(es=>es.forEach(e=>{const v=e.target.querySelector('video');
- if(e.isIntersecting){if(!v.src)v.src=v.dataset.s;v.playbackRate=speed;v.play().catch(()=>{})}else{v.pause()}}),{threshold:.7});
+ if(e.isIntersecting){if(!v.src)v.src=v.dataset.s;v.autoPictureInPicture=true;playing=v;v.playbackRate=speed;v.play().catch(()=>{})}else{v.pause()}}),{threshold:.7});
 function render(){m.innerHTML='';io.disconnect();
  const key=v=>{const l=/lezione (\d+)/i.exec(v.topic+' '+(v.parent||'')),p=/ p\. (\d+)/.exec(v.topic);return [l?+l[1]:999,p?+p[1]:0,v.level||0,v.topic]};
  const cmp=(a,b)=>{const x=key(a),y=key(b);return x[0]-y[0]||x[1]-y[1]||x[2]-y[2]||x[3].localeCompare(y[3])};

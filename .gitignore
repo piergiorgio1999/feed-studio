@@ -5,3 +5,7 @@ node_modules/
 __pycache__/
 *.log
 feed/uploaded.json
+wrangler.local.toml
+feed/worker/src/videos.json
+feed/.videos.json
+wrangler.local.toml
