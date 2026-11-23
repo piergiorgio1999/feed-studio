@@ -32,6 +32,9 @@ let auto=!!S('auto');let order=(S('order')||'logico'),all=[],saved=new Set(S('sa
 let playing=null;
 const enterPiP=()=>{if(playing&&!playing.paused&&document.pictureInPictureElement!==playing&&document.pictureInPictureEnabled)playing.requestPictureInPicture().catch(()=>{})};
 try{navigator.mediaSession.setActionHandler('enterpictureinpicture',enterPiP)}catch{}
+addEventListener('blur',()=>{if(document.hidden||!document.hasFocus())enterPiP()});
+addEventListener('pagehide',enterPiP);
+document.addEventListener('play',e=>{try{navigator.mediaSession.playbackState='playing';e.target.disablePictureInPicture=false;e.target.autoPictureInPicture=true}catch{}},true);
 document.addEventListener('visibilitychange',()=>{if(document.hidden)enterPiP();else if(document.pictureInPictureElement)document.exitPictureInPicture().catch(()=>{})});
 const io=new IntersectionObserver(es=>es.forEach(e=>{const v=e.target.querySelector('video');
  if(e.isIntersecting){if(!v.src)v.src=v.dataset.s;v.autoPictureInPicture=true;playing=v;v.playbackRate=speed;v.play().catch(()=>{})}else{v.pause()}}),{threshold:.7});
