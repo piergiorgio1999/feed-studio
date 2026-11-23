@@ -1,0 +1,6 @@
+{
+  "name": "moodle-sapienza",
+  "version": "0.1.0",
+  "description": "Esplora Moodle Sapienza (corsi, docenti, notifiche, scadenze, link) tramite le API della app mobile.",
+  "author": { "name": "pg" }
+}

@@ -1,0 +1,13 @@
+name = "learn-feed"
+main = "src/index.js"
+compatibility_date = "2026-11-01"
+rules = [{ type = "Text", globs = ["**/*.html"], fallthrough = false }]
+
+[[r2_buckets]]
+binding = "VIDEOS"
+bucket_name = "learn-feed-videos"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "learn-feed"
+database_id = "REPLACE_WITH_D1_ID"

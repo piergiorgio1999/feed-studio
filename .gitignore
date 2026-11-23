@@ -1,0 +1,7 @@
+.token
+.env
+.wrangler/
+node_modules/
+__pycache__/
+*.log
+feed/uploaded.json
