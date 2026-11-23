@@ -1,0 +1,13 @@
+#!/bin/sh
+# Deploy automatico del feed: a ogni push che tocca feed/index.html o feed/worker/ pubblica il Worker
+# con il login di wrangler già presente sul Mac (nessun token API in GitHub).
+# Attivazione (una volta): git config core.hooksPath .githooks
+# Richiede ~/.feed-studio/env (FEED_DRIVE_ROOT, FEED_D1_ID). Un errore di deploy NON blocca il push.
+ROOT=$(git rev-parse --show-toplevel)
+BASE=$(git rev-parse --verify -q origin/main || git hash-object -t tree /dev/null)
+if git diff --name-only "$BASE" HEAD -- feed/index.html feed/worker | grep -q .; then
+  echo "[pre-push] deploy del feed…"
+  [ -f "$HOME/.feed-studio/env" ] && . "$HOME/.feed-studio/env"
+  "$ROOT/feed/publish.sh" --deploy || echo "[pre-push] deploy fallito: push comunque eseguito"
+fi
+exit 0
