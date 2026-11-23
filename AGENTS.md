@@ -64,3 +64,8 @@ Installa hook o LaunchAgent solo dopo conferma esplicita dell'utente.
 
 ## Idee per estendere
 Ask AI con le trascrizioni, quiz, sottotitoli, altri corsi (nuovo quaderno + syllabus), sync automatica `upload.py` + `publish.sh` dopo ogni giro, runner cloud per produrre a Mac spento (richiede di copiare sessioni Google: valutare il rischio).
+
+## Hook installati (setup dell'autore, riproducibile)
+- Runtime fuori da iCloud: `~/.feed-studio/` con `comments.py`, `.token`, `env` (`FEED_URL`, `FEED_TOKEN_FILE`, `FEED_PROJECT`).
+- Claude: hook `UserPromptSubmit` in `~/.claude/settings.json` che esegue `comments.py hook --target claude` (inietta i commenti `@claude` aperti nel contesto).
+- Codex: LaunchAgent `it.feedstudio.codex-comments` (ogni 5 min) → `comments.py dispatch-codex` → `codex exec` per ogni commento `@codex` aperto. Disattivare: `launchctl bootout gui/$(id -u) ~/Library/LaunchAgents/it.feedstudio.codex-comments.plist`.
