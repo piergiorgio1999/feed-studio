@@ -9,6 +9,10 @@ vs=json.load(open(ROOT+"Gemini Notebook Video/index.json"))["videos"]
 up=json.load(open("uploaded.json"))
 T=json.load(open("titles.json")) if os.path.exists("titles.json") else {}
 out=[{"id":int(i),"exam":vs[int(i)].get("exam") or re.sub(r" \(Moodle\)| — fonti","",vs[int(i)]["notebook"]),"topic":vs[int(i)].get("topic") or "Ripasso","level":vs[int(i)].get("level"),"parent":vs[int(i)].get("parent"),"title":T.get(vs[int(i)].get("artifact_id"))} for i in up]
+k={}
+for o in out:
+    if not o["title"] and o["topic"]=="Ripasso":
+        k[o["exam"]]=k.get(o["exam"],0)+1; o["title"]=f'Ripasso {k[o["exam"]]} · '+o["exam"].split(" (")[0]
 json.dump(out,open(".videos.json","w"),ensure_ascii=False);print(len(out),"video")
 PY
 BUCKET="${FEED_BUCKET:-learn-feed-videos}"
