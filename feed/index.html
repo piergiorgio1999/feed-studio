@@ -23,11 +23,11 @@ video{width:100%;height:100%;object-fit:contain;background:#000}
 </style>
 <div class=sheet id=sh><b id=sht></b><div class=list id=shl></div><textarea id=shx rows=2 placeholder="Scrivi un commento…"></textarea>
 <div class=row><select id=sht2><option value="">Nessun tag</option><option value=claude>@claude</option><option value=codex>@codex</option><option value=both>@claude + @codex</option></select><button onclick="sh.classList.remove('on')">Chiudi</button><button class=send id=shs>Invia</button></div></div>
-<header><button id=o></button><span id=f style=display:contents></span></header><main id=m></main>
+<header><button id=o></button><button id=au></button><span id=f style=display:contents></span></header><main id=m></main>
 <script>
 const S=k=>{try{return JSON.parse(localStorage[k]||'null')}catch{return null}};
 let social={likes:new Set(),comments:{}};const api=(p,b)=>fetch(p,b?{method:'POST',body:JSON.stringify(b)}:{}).then(r=>r.json());
-let order=(S('order')||'logico'),all=[],saved=new Set(S('saved')||[]),exam='Tutti',speed=1;
+let auto=!!S('auto');let order=(S('order')||'logico'),all=[],saved=new Set(S('saved')||[]),exam='Tutti',speed=1;
 // Picture-in-Picture automatico quando esci dalla finestra/tab
 let playing=null;
 const enterPiP=()=>{if(playing&&!playing.paused&&document.pictureInPictureElement!==playing&&document.pictureInPictureEnabled)playing.requestPictureInPicture().catch(()=>{})};
@@ -41,10 +41,10 @@ function render(){m.innerHTML='';io.disconnect();
  const src=order==='shuffle'?[...all].sort(()=>Math.random()-.5):[...all].sort(cmp);
  const list=src.filter(v=>exam==='Tutti'?true:exam==='Salvati'?saved.has(v.id):v.exam===exam);
  for(const v of list){const s=document.createElement('section');
-  s.innerHTML=`<video playsinline loop preload="none" data-s="/video/${v.id}"></video>
+  s.innerHTML=`<video playsinline preload="none" data-s="/video/${v.id}"></video>
   <div class=cap><span class=chip>${v.exam}</span><h2>${v.topic}</h2><p>${v.parent?v.parent+' · ':''}${v.level?'livello '+v.level:''}</p></div>
   <div class=side><button class="${social.likes.has(v.id)?'on':''}" data-a=like>♥</button><button data-a=cm>💬<br>${social.comments[v.id]||''}</button><button class="${saved.has(v.id)?'on':''}" data-a=save>★<br>Salva</button><button data-a=speed>${speed}×</button></div>`;
-  const vid=s.querySelector('video');vid.onclick=()=>vid.paused?vid.play():vid.pause();
+  const vid=s.querySelector('video');vid.loop=!auto;vid.onended=()=>{if(auto){const n=s.nextElementSibling;if(n)n.scrollIntoView({behavior:'smooth'});else vid.play()}};vid.onclick=()=>vid.paused?vid.play():vid.pause();
   s.querySelector('[data-a=save]').onclick=e=>{saved.has(v.id)?saved.delete(v.id):saved.add(v.id);localStorage.saved=JSON.stringify([...saved]);e.currentTarget.classList.toggle('on')};
   s.querySelector('[data-a=speed]').onclick=()=>{speed=speed>=2?1:speed+.5;document.querySelectorAll('video').forEach(x=>x.playbackRate=speed);document.querySelectorAll('[data-a=speed]').forEach(b=>b.textContent=speed+'×')};
   s.querySelector('[data-a=like]').onclick=async e=>{const r=await api('/api/like',{id:v.id});r.liked?social.likes.add(v.id):social.likes.delete(v.id);e.currentTarget.classList.toggle('on',r.liked)};
@@ -55,6 +55,8 @@ let cur=null;
 async function loadC(){const cs=await api('/api/comments?video='+cur.id);shl.innerHTML=cs.map(c=>`<div class=c><small>${c.created_at}${c.target?' · @'+c.target+' ('+c.status+')':''}</small>${c.text.replace(/</g,'&lt;')}${c.reply?'<div class=r>↳ '+c.reply.replace(/</g,'&lt;')+'</div>':''}</div>`).join('')||'<div class=c>Nessun commento</div>'}
 function openSheet(v){cur=v;sht.textContent=v.topic;sh.classList.add('on');loadC()}
 shs.onclick=async()=>{const t=shx.value.trim();if(!t)return;await api('/api/comment',{id:cur.id,text:t,target:sht2.value||null});shx.value='';social.comments[cur.id]=(social.comments[cur.id]||0)+1;loadC()};
+const labA=()=>au.textContent=auto?'⏭ Auto':'✋ Manuale';
+au.onclick=()=>{auto=!auto;localStorage.auto=JSON.stringify(auto);labA();document.querySelectorAll('video').forEach(v=>v.loop=!auto)};labA();
 const lab=()=>o.textContent=order==='shuffle'?'🔀 Shuffle':'↧ Ordine lezioni';
 o.onclick=()=>{order=order==='shuffle'?'logico':'shuffle';localStorage.order=JSON.stringify(order);lab();render()};lab();
 Promise.all([fetch('/api/videos').then(r=>r.json()),api('/api/social').catch(()=>({likes:[],comments:{}}))]).then(([d,sc])=>{social.likes=new Set(sc.likes);social.comments=sc.comments;all=d;
