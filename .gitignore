@@ -9,3 +9,4 @@ wrangler.local.toml
 feed/worker/src/videos.json
 feed/.videos.json
 wrangler.local.toml
+feed/titles.json

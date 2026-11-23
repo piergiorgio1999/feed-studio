@@ -45,7 +45,7 @@ function render(){m.innerHTML='';io.disconnect();
  const list=src.filter(v=>exam==='Tutti'?true:exam==='Salvati'?saved.has(v.id):v.exam===exam);
  for(const v of list){const s=document.createElement('section');
   s.innerHTML=`<video playsinline preload="none" data-s="/video/${v.id}"></video>
-  <div class=cap><span class=chip>${v.exam}</span><h2>${v.topic}</h2><p>${v.parent?v.parent+' · ':''}${v.level?'livello '+v.level:''}</p></div>
+  <div class=cap><span class=chip>${v.exam}</span><h2>${(v.title||v.topic).replace(/</g,'&lt;')}</h2><p>${(v.title?v.topic:(v.parent||'')).replace(/</g,'&lt;')}</p></div>
   <div class=side><button class="${social.likes.has(v.id)?'on':''}" data-a=like>♥</button><button data-a=cm>💬<br>${social.comments[v.id]||''}</button><button class="${saved.has(v.id)?'on':''}" data-a=save>★<br>Salva</button><button data-a=speed>${speed}×</button></div>`;
   const vid=s.querySelector('video');vid.loop=!auto;vid.onended=()=>{if(auto){const n=s.nextElementSibling;if(n)n.scrollIntoView({behavior:'smooth'});else vid.play()}};vid.onclick=()=>vid.paused?vid.play():vid.pause();
   s.querySelector('[data-a=save]').onclick=e=>{saved.has(v.id)?saved.delete(v.id):saved.add(v.id);localStorage.saved=JSON.stringify([...saved]);e.currentTarget.classList.toggle('on')};
