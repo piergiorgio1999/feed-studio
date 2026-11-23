@@ -9,6 +9,8 @@ vs=json.load(open(ROOT+"Gemini Notebook Video/index.json"))["videos"]
 up=json.load(open("uploaded.json"))
 T=json.load(open("titles.json")) if os.path.exists("titles.json") else {}
 out=[{"id":int(i),"exam":vs[int(i)].get("exam") or re.sub(r" \(Moodle\)| — fonti","",vs[int(i)]["notebook"]),"topic":vs[int(i)].get("topic") or "Ripasso","level":vs[int(i)].get("level"),"parent":vs[int(i)].get("parent"),"title":T.get(vs[int(i)].get("artifact_id"))} for i in up]
+F=os.environ.get("FEED_SHOW_FILTER","")   # es. Morpurgo: nel feed solo i corsi che contengono questa sottostringa
+out=[o for o in out if F in o["exam"]]
 k={}
 for o in out:
     if not o["title"] and o["topic"]=="Ripasso":
